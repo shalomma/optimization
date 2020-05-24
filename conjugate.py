@@ -16,7 +16,7 @@ class ConjGradOptimizer:
 
     def update_alpha(self):
         g, _ = self.update_grad()
-        self.alpha = g.T.dot(g) / self.d.T.dot(self.func.Q).dot(self.d)
+        self.alpha = g.T.dot(self.d) / self.d.T.dot(self.func.Q).dot(self.d)
 
     def update_x(self):
         self.x_prev = self.x
