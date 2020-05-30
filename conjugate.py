@@ -3,7 +3,6 @@ class ConjGradOptimizer:
         self.func = func
         self.x = init
         self.g = self.func.grad(init)
-        self.g_prev = None
         self.d = - self.g
         self.dim = len(init)
         self.alpha = None
@@ -12,8 +11,8 @@ class ConjGradOptimizer:
     def update_grad(self):
         return self.func.grad(self.x), self.func.grad(self.x_prev)
 
-    def update_dir(self):
-        beta = self.g.dot(self.g) / self.g_prev.dot(self.g_prev)
+    def update_dir(self, prev_grad):
+        beta = self.g.dot(self.g) / prev_grad.dot(prev_grad)
         return - self.g + beta * self.d
 
     def update_alpha(self):
@@ -26,8 +25,9 @@ class ConjGradOptimizer:
     def step(self):
         self.alpha = self.update_alpha()
         self.x = self.update_x()
-        self.g, self.g_prev = self.update_grad()
-        self.d = self.update_dir()
+        self.g, prev_grad = self.update_grad()
+        self.d = self.update_dir(prev_grad)
+        return self.x, self.g, self.d, self.alpha
 
     def optimize(self):
         i = 0
