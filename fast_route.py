@@ -49,19 +49,23 @@ class FastRoute:
 
 def find_fast_route(objective, init, alpha=1, threshold=1e-3, max_iters=1e3):
     opt = NewtonOptimizer(objective, alpha=alpha, init=init)
-    opt.optimize(threshold, max_iters)
-    return func(opt.x), opt.x, opt.num_iters
+    return opt.optimize(threshold, max_iters)
+
+
+def find_alpha(start_x, start_y, finish_x, finish_y, num_layers):
+    return 0.1
 
 
 if __name__ == '__main__':
-    velocities_ = np.array([2, 4, 5, 1, 1])
-    func = FastRoute(start_x=0, start_y=0,
-                     finish_x=100, finish_y=100,
-                     velocities=velocities_)
+    velocities_ = np.array([1, 2, 3, 4])
+    start_x_, start_y_ = 1, 1
+    finish_x_, finish_y_ = 10, 12
+    func = FastRoute(start_x_, start_y_, finish_x_, finish_y_, velocities_)
+    x0 = np.array([4, 5, 6])
 
-    x0 = np.array([1, 2, 3, 40])
+    alpha = find_alpha(start_x_, start_y_, finish_x_, finish_y_, len(velocities_))
 
-    fx, x, i = find_fast_route(func, x0, alpha=0.01, threshold=1e-14)
+    fx_, x_, i_ = find_fast_route(func, x0, alpha=alpha, threshold=1e-6, max_iters=1e4)
 
-    dfx = func.grad(x)
-    hx = func.hessian(x)
+    dfx_ = func.grad(x_)
+    hx_ = func.hessian(x_)

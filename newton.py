@@ -6,7 +6,6 @@ class NewtonOptimizer:
         self.func = func
         self.alpha = alpha
         self.x = init
-        self.num_iters = 0
 
     def step(self, x):
         gx = self.func.grad(x)
@@ -17,7 +16,8 @@ class NewtonOptimizer:
     def optimize(self, threshold, max_iters):
         for i in range(int(max_iters)):
             next_x, gx, hx = self.step(self.x)
-            if np.linalg.norm(next_x - self.x, ord=1) < threshold:
-                self.num_iters = i
-                break
+            eps = np.linalg.norm(next_x - self.x, ord=2)
             self.x = next_x
+            if eps < threshold:
+                break
+        return self.func(self.x), self.x, i
