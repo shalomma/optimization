@@ -30,7 +30,6 @@ class ConjGradOptimizer:
         return self.x, self.g, self.d, self.alpha
 
     def optimize(self):
-        i = 0
-        for i in range(self.dim):
+        for i in range(1, self.dim + 1):
             self.step()
         return self.func(self.x), self.x, i
