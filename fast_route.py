@@ -40,6 +40,7 @@ class FastRoute:
             x_delta = x_i - x_prev
             hypotenuse = np.sqrt(x_delta ** 2 + self.d ** 2)
             p[i] = self.d ** 2 / (self.velocities[i] * (hypotenuse ** 3))
+            x_prev = x_i
         h = np.zeros((self.dim, self.dim))
         h[range(1, self.dim), range(0, self.dim - 1)] = - p[1:self.dim]
         h = h.T + h
