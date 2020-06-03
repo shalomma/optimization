@@ -6,7 +6,7 @@ class ConjGradOptimizer:
         self.d = - self.g
         self.dim = len(init)
         self.alpha = None
-        self.x_prev = init
+        self.x_prev = None
 
     def update_grad(self):
         return self.func.grad(self.x), self.func.grad(self.x_prev)
