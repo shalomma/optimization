@@ -54,19 +54,23 @@ def find_fast_route(objective, init, alpha=1, threshold=1e-3, max_iters=1e3):
 
 
 def find_alpha(start_x, start_y, finish_x, finish_y, num_layers):
-    return 0.1
+    delta_x = finish_x - start_x
+    delta_y = finish_y - start_y
+    hypotenuse = np.sqrt(delta_x ** 2 + delta_y ** 2)
+    avg_hypotenuse = hypotenuse / num_layers
+    return min(1, 1 / 10 * avg_hypotenuse)
 
 
 if __name__ == '__main__':
-    velocities_ = np.array([1, 2, 3, 4])
-    start_x_, start_y_ = 1, 1
-    finish_x_, finish_y_ = 10, 12
+    velocities_ = np.array([1.9, 0.6, 0.53, 2.3, 2.5, 1.2, 0.6])
+    start_x_, start_y_ = 0.4, 0.3
+    finish_x_, finish_y_ = 11.2, 12.3
     func = FastRoute(start_x_, start_y_, finish_x_, finish_y_, velocities_)
-    x0 = np.array([4, 5, 6])
+    x0 = np.array([1.2, 2.3, 3.4, 4.5, 4.3, 3.2])
 
-    alpha = find_alpha(start_x_, start_y_, finish_x_, finish_y_, len(velocities_))
+    alpha_ = find_alpha(start_x_, start_y_, finish_x_, finish_y_, len(velocities_))
 
-    fx_, x_, i_ = find_fast_route(func, x0, alpha=alpha, threshold=1e-6, max_iters=1e4)
+    fx_, x_, i_ = find_fast_route(func, x0, alpha=alpha_, threshold=1e-5, max_iters=1e4)
 
     dfx_ = func.grad(x_)
     hx_ = func.hessian(x_)
