@@ -8,6 +8,9 @@ class NewtonOptimizer:
         self.x = init
 
     def step(self, x):
+        """
+        x[k+1] = x[k] - alpha * H(x[k])^-1 * g(x[k])
+        """
         gx = self.func.grad(x)
         hx = self.func.hessian(x)
         next_x = x - self.alpha * np.linalg.inv(hx).dot(gx)

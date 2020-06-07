@@ -4,43 +4,45 @@ from newton import NewtonOptimizer
 
 class FastRoute:
     def __init__(self, start_x, start_y, finish_x, finish_y, velocities):
-        self.start_x, self.start_y = start_x, start_y
-        self.finish_x, self.finish_y = finish_x, finish_y
+        self.start_x, self.finish_x = start_x, finish_x
         self.velocities = velocities
-        self.d = (self.finish_y - self.start_y) / len(velocities)
+        self.d = (finish_y - start_y) / len(velocities)
         self.dim = len(velocities) - 1
 
+    def get_lengths(self, x):
+        x = np.concatenate(([self.start_x], x, [self.finish_x]))
+        x_deltas = x[1:] - x[:-1]
+        d = np.array([self.d] * (self.dim + 1))
+        hypotenuses = np.sqrt(x_deltas ** 2 + d ** 2)
+        return x_deltas, hypotenuses
+
     def __call__(self, x):
-        x = np.concatenate((x, [self.finish_x]))
-        time = 0
-        x_prev = self.start_x
-        for i, x_i in enumerate(x):
-            x_delta = x_i - x_prev
-            hypotenuse = np.sqrt(x_delta ** 2 + self.d ** 2)
-            time += hypotenuse / self.velocities[i]
-            x_prev = x_i
-        return time
+        _, hypotenuses = self.get_lengths(x)
+        times = hypotenuses / self.velocities
+        return times.sum()
 
     def grad(self, x):
-        x = np.concatenate((x, [self.finish_x]))
-        x_prev = self.start_x
-        r = np.zeros(self.dim + 1)
-        for i, x_i in enumerate(x):
-            x_delta = x_i - x_prev
-            hypotenuse = np.sqrt(x_delta ** 2 + self.d ** 2)
-            r[i] = x_delta / (self.velocities[i] * hypotenuse)
-            x_prev = x_i
+        """
+        using a temp array 'r'
+        r[k] = (x[k] - x[k-1]) / (v[k] * ((x[k] - x[k-1])^2 + d^2)^0.5)
+        to construct the gradient vector as follows
+        grad[k] = r[k] - r[k+1]
+        """
+        x_deltas, hypotenuses = self.get_lengths(x)
+        r = x_deltas / (self.velocities * hypotenuses)
         return r[:self.dim] - r[1:self.dim + 1]
 
     def hessian(self, x):
-        x = np.concatenate((x, [self.finish_x]))
-        x_prev = self.start_x
-        p = np.zeros(self.dim + 1)
-        for i, x_i in enumerate(x):
-            x_delta = x_i - x_prev
-            hypotenuse = np.sqrt(x_delta ** 2 + self.d ** 2)
-            p[i] = self.d ** 2 / (self.velocities[i] * (hypotenuse ** 3))
-            x_prev = x_i
+        """
+        using a temp array 'p'
+        p[k] = d^2 / (v[k] * ((x[k] - x[k-1])^2 + d^2)^1.5)
+        to construct the hessian matrix as follows
+        h[k,k] = p[k] + p[k+1]
+        h[k, k-1] = -p[k]
+        and the rest of the elements are zeros
+        """
+        x_deltas, hypotenuses = self.get_lengths(x)
+        p = self.d ** 2 / (self.velocities * hypotenuses ** 3)
         h = np.zeros((self.dim, self.dim))
         h[range(1, self.dim), range(0, self.dim - 1)] = - p[1:self.dim]
         h = h.T + h
@@ -54,6 +56,9 @@ def find_fast_route(objective, init, alpha=1, threshold=1e-3, max_iters=1e3):
 
 
 def find_alpha(start_x, start_y, finish_x, finish_y, num_layers):
+    """
+    alpha should be inversely proportional to the average diagonal.
+    """
     delta_x = finish_x - start_x
     delta_y = finish_y - start_y
     hypotenuse = np.sqrt(delta_x ** 2 + delta_y ** 2)
