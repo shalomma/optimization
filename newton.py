@@ -14,6 +14,7 @@ class NewtonOptimizer:
         return next_x, gx, hx
 
     def optimize(self, threshold, max_iters):
+        i = 0
         for i in range(1, int(max_iters + 1)):
             next_x, gx, hx = self.step(self.x)
             eps = np.linalg.norm(next_x - self.x, ord=2)
